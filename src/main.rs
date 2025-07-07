@@ -1,7 +1,9 @@
+mod bfs_solver;
 mod cell;
 mod dfs_solver;
 mod maze;
 mod maze_pprint;
+mod queue;
 mod solver;
 mod stack;
 
@@ -14,6 +16,7 @@ fn main() {
             println!("Maze loaded successfully!");
             println!("{}", maze);
             let solver = dfs_solver::DfsSolver;
+            //let solver = bfs_solver::BfsSolver;
             match solver.solve(&maze) {
                 Some(path) => {
                     println!("Path found:");
