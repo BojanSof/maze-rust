@@ -31,7 +31,7 @@ impl Solver for DfsSolver {
 
         stack.push(maze.start);
 
-        while let Some(&(row, col)) = stack.peek() {
+        while let Some((row, col)) = stack.pop() {
             visited.insert((row, col));
             if (row, col) == maze.end {
                 let mut path = vec![(row, col)];
@@ -44,24 +44,13 @@ impl Solver for DfsSolver {
 
                 path.reverse();
                 return Some(path);
-            } else if maze.cells[row][col] == Cell::Path {
+            } else if maze.cells[row][col] != Cell::Wall {
                 let neighbors = get_neighbors(row, col, maze.cells.len(), maze.cells[0].len());
-                if neighbors.is_empty() {
-                    stack.pop();
-                } else {
-                    let mut found_unvisited = false;
-                    for (n_row, n_col) in neighbors {
-                        if maze.cells[n_row][n_col] != Cell::Wall
-                            && !visited.contains(&(n_row, n_col))
-                        {
-                            parent.insert((n_row, n_col), (row, col));
-                            stack.push((n_row, n_col));
-                            found_unvisited = true;
-                            break;
-                        }
-                    }
-                    if !found_unvisited {
-                        stack.pop(); // No unvisited neighbors, backtrack
+                for (n_row, n_col) in neighbors {
+                    if maze.cells[n_row][n_col] != Cell::Wall && !visited.contains(&(n_row, n_col))
+                    {
+                        parent.insert((n_row, n_col), (row, col));
+                        stack.push((n_row, n_col));
                     }
                 }
             }
@@ -73,42 +62,55 @@ impl Solver for DfsSolver {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::solver::Solver;
-
-    use std::env;
-    use std::fs::File;
-    use std::io::Write;
+    use crate::cell::Cell;
+    use crate::maze::Maze;
+    use crate::solver::Solver; // adjust path as needed
 
     #[test]
     fn test_dfs_solver_finds_path() {
-        let maze_text = "\
-#######\n\
-#S...E#\n\
-#######";
+        let cells = vec![
+            vec![
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Wall,
+            ],
+            vec![
+                Cell::Wall,
+                Cell::Path,
+                Cell::Path,
+                Cell::Path,
+                Cell::Path,
+                Cell::Path,
+                Cell::Wall,
+            ],
+            vec![
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Wall,
+            ],
+        ];
+        let start = (1, 1);
+        let end = (1, 5);
 
-        let mut path = env::temp_dir();
-        path.push("test_dfs_maze.txt");
+        let maze = Maze { cells, start, end };
 
-        {
-            let mut file = File::create(&path).unwrap();
-            write!(file, "{}", maze_text).unwrap();
-        }
-
-        let maze = Maze::from_file(&path).unwrap();
         let solver = DfsSolver;
-        let result = solver.solve(&maze);
+        let path = solver.solve(&maze);
 
-        assert!(result.is_some(), "Solver should find a path");
-        let path = result.unwrap();
+        assert!(path.is_some(), "Solver should find a path");
+        let path = path.unwrap();
 
-        assert_eq!(
-            path.first().copied(),
-            Some(maze.start),
-            "Path should start at S"
-        );
-        assert_eq!(path.last().copied(), Some(maze.end), "Path should end at E");
+        assert_eq!(path.first().copied(), Some(start), "Path should start at S");
+        assert_eq!(path.last().copied(), Some(end), "Path should end at E");
 
-        // Ensure all cells in path are not walls and adjacent
         for window in path.windows(2) {
             let (a, b) = (window[0], window[1]);
 
@@ -117,7 +119,8 @@ mod tests {
 
             assert!(
                 maze.cells[b_row][b_col] != Cell::Wall,
-                "Path goes through a wall"
+                "Path goes through a wall at {:?}",
+                b
             );
 
             let dr = (a_row as isize - b_row as isize).abs();
@@ -129,5 +132,50 @@ mod tests {
                 b
             );
         }
+    }
+
+    #[test]
+    fn test_dfs_solver_no_path() {
+        let cells = vec![
+            vec![
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Wall,
+            ],
+            vec![
+                Cell::Wall,
+                Cell::Path,
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Path,
+                Cell::Wall,
+            ],
+            vec![
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Wall,
+                Cell::Wall,
+            ],
+        ];
+        let start = (1, 1);
+        let end = (1, 5);
+
+        let maze = Maze { cells, start, end };
+
+        let solver = DfsSolver;
+        let path = solver.solve(&maze);
+
+        assert!(
+            path.is_none(),
+            "Solver should return None when no path exists"
+        );
     }
 }
