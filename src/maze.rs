@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt;
 use std::fs::File;
 use std::io::{self, BufRead};
@@ -67,6 +68,53 @@ impl Maze {
         let end = end.ok_or(MazeError::MissingStartOrEnd)?;
 
         Ok(Maze { cells, start, end })
+    }
+
+    pub fn get_neighbors(
+        row: usize,
+        col: usize,
+        height: usize,
+        width: usize,
+    ) -> Vec<(usize, usize)> {
+        const DIRS: [(isize, isize); 4] = [(-1, 0), (1, 0), (0, -1), (0, 1)];
+        let mut neighbors = Vec::new();
+
+        for (dy, dx) in DIRS.iter() {
+            let new_row = row as isize + dy;
+            let new_col = col as isize + dx;
+
+            if new_row >= 0 && new_row < height as isize && new_col >= 0 && new_col < width as isize
+            {
+                neighbors.push((new_row as usize, new_col as usize));
+            }
+        }
+
+        neighbors
+    }
+
+    // converts maze to adjacency list representation, each edge is associated with a weight
+    pub fn to_graph(&self) -> HashMap<(usize, usize), Vec<((usize, usize), usize)>> {
+        let mut graph = HashMap::new();
+        let rows = self.cells.len();
+        let cols = self.cells[0].len();
+
+        for i_row in 0..rows {
+            for i_col in 0..cols {
+                if self.cells[i_row][i_col] != Cell::Wall {
+                    let neighbors = Maze::get_neighbors(i_row, i_col, rows, cols);
+                    let mut adj_list = Vec::new();
+                    for (n_row, n_col) in neighbors {
+                        if self.cells[n_row][n_col] != Cell::Wall {
+                            // Each edge has weight 1
+                            adj_list.push(((n_row, n_col), 1));
+                        }
+                    }
+                    graph.insert((i_row, i_col), adj_list);
+                }
+            }
+        }
+
+        graph
     }
 }
 

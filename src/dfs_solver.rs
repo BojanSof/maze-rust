@@ -7,22 +7,6 @@ use crate::stack::Stack;
 
 pub struct DfsSolver;
 
-fn get_neighbors(row: usize, col: usize, height: usize, width: usize) -> Vec<(usize, usize)> {
-    const DIRS: [(isize, isize); 4] = [(-1, 0), (1, 0), (0, -1), (0, 1)];
-    let mut neighbors = Vec::new();
-
-    for (dy, dx) in DIRS.iter() {
-        let new_row = row as isize + dy;
-        let new_col = col as isize + dx;
-
-        if new_row >= 0 && new_row < height as isize && new_col >= 0 && new_col < width as isize {
-            neighbors.push((new_row as usize, new_col as usize));
-        }
-    }
-
-    neighbors
-}
-
 impl Solver for DfsSolver {
     fn solve(&self, maze: &Maze) -> Option<Vec<(usize, usize)>> {
         let mut stack = Stack::new();
@@ -45,7 +29,8 @@ impl Solver for DfsSolver {
                 path.reverse();
                 return Some(path);
             } else if maze.cells[row][col] != Cell::Wall {
-                let neighbors = get_neighbors(row, col, maze.cells.len(), maze.cells[0].len());
+                let neighbors =
+                    Maze::get_neighbors(row, col, maze.cells.len(), maze.cells[0].len());
                 for (n_row, n_col) in neighbors {
                     if maze.cells[n_row][n_col] != Cell::Wall && !visited.contains(&(n_row, n_col))
                     {

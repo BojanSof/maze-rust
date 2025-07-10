@@ -10,11 +10,12 @@ mod stack;
 use crate::solver::Solver;
 
 fn main() {
-    let maze_path = "mazes/maze3.txt";
+    let maze_path = "mazes/maze1.txt";
     match maze::Maze::from_file(maze_path) {
         Ok(maze) => {
             println!("Maze loaded successfully!");
             println!("{}", maze);
+            println!("Maze as graph: \n{:?}", maze.to_graph());
             let solver = dfs_solver::DfsSolver;
             //let solver = bfs_solver::BfsSolver;
             match solver.solve(&maze) {
