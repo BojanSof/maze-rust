@@ -6,3 +6,4 @@ Learning Rust by implementing algorithms for solving mazes.
 - Depth-first search (DFS)
 - Breadth-first search (BFS)
 - Dijkstra
+- A* search

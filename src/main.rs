@@ -1,3 +1,4 @@
+mod astar;
 mod bfs_solver;
 mod cell;
 mod dfs_solver;
@@ -20,7 +21,8 @@ fn main() {
             println!("Maze as graph: \n{:?}", maze.to_graph());
             //let solver = dfs_solver::DfsSolver;
             //let solver = bfs_solver::BfsSolver;
-            let solver = dijkstra::DijkstraSolver;
+            //let solver = dijkstra::DijkstraSolver;
+            let solver = astar::AstarSolver;
             match solver.solve(&maze) {
                 Some(path) => {
                     println!("Path found:");
