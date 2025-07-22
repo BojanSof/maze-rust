@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use crate::cell::Cell;
 use crate::maze::Maze;
 use crate::queue::Queue;
-use crate::solver::Solver;
+use crate::solvers::solver::Solver;
 
 pub struct BfsSolver;
 
@@ -49,7 +49,7 @@ mod tests {
     use super::*;
     use crate::cell::Cell;
     use crate::maze::Maze;
-    use crate::solver::Solver;
+    use crate::solvers::solver::Solver;
 
     #[test]
     fn test_bfs_solver_finds_path() {

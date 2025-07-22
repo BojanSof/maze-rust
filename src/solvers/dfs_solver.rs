@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use crate::cell::Cell;
 use crate::maze::Maze;
-use crate::solver::Solver;
+use crate::solvers::solver::Solver;
 use crate::stack::Stack;
 
 pub struct DfsSolver;
@@ -49,7 +49,7 @@ mod tests {
     use super::*;
     use crate::cell::Cell;
     use crate::maze::Maze;
-    use crate::solver::Solver; // adjust path as needed
+    use crate::solvers::solver::Solver; // adjust path as needed
 
     #[test]
     fn test_dfs_solver_finds_path() {

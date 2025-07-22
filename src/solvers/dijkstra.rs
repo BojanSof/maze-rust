@@ -2,11 +2,11 @@ use std::collections::HashMap;
 
 use crate::maze::Maze;
 use crate::priority_queue::PriorityQueue;
-use crate::solver::Solver;
+use crate::solvers::solver::Solver;
 
-pub struct AstarSolver;
+pub struct DijkstraSolver;
 
-impl Solver for AstarSolver {
+impl Solver for DijkstraSolver {
     fn solve(&self, maze: &Maze) -> Option<Vec<(usize, usize)>> {
         let graph = maze.to_graph();
 
@@ -14,9 +14,9 @@ impl Solver for AstarSolver {
         let mut distances: HashMap<(usize, usize), (usize, (usize, usize))> = HashMap::new();
 
         distances.insert(maze.start, (0, maze.start));
-        queue.push((heuristic(maze.start, maze.end), maze.start));
+        queue.push((0, maze.start));
 
-        while let Some((_, current_node)) = queue.pop() {
+        while let Some((current_distance, current_node)) = queue.pop() {
             if current_node == maze.end {
                 let mut path = vec![current_node];
                 let mut current = current_node;
@@ -32,18 +32,21 @@ impl Solver for AstarSolver {
                 path.reverse();
                 return Some(path);
             }
-            let current_cost = distances
-                .get(&current_node)
-                .map(|x| x.0)
-                .unwrap_or(usize::MAX);
+
+            if current_distance
+                > distances
+                    .get(&current_node)
+                    .unwrap_or(&(usize::MAX, (0, 0)))
+                    .0
+            {
+                continue; // Skip if we found a better path already
+            }
 
             for &(neighbor, weight) in graph.get(&current_node).unwrap_or(&vec![]) {
-                let new_cost = current_cost + weight;
-                if new_cost < distances.get(&neighbor).map(|x| x.0).unwrap_or(usize::MAX) {
-                    distances.insert(neighbor, (new_cost, current_node));
-
-                    let priority = new_cost + heuristic(neighbor, maze.end);
-                    queue.push((priority, neighbor));
+                let new_distance = current_distance + weight;
+                if new_distance < distances.get(&neighbor).unwrap_or(&(usize::MAX, (0, 0))).0 {
+                    distances.insert(neighbor, (new_distance, current_node));
+                    queue.push((new_distance, neighbor));
                 }
             }
         }
@@ -51,19 +54,15 @@ impl Solver for AstarSolver {
     }
 }
 
-fn heuristic(a: (usize, usize), b: (usize, usize)) -> usize {
-    ((a.0 as isize - b.0 as isize).abs() + (a.1 as isize - b.1 as isize).abs()) as usize
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::cell::Cell;
     use crate::maze::Maze;
-    use crate::solver::Solver;
+    use crate::solvers::solver::Solver;
 
     #[test]
-    fn test_astar_solver_finds_path() {
+    fn test_dijkstra_solver_finds_path() {
         let cells = vec![
             vec![Cell::Path, Cell::Wall, Cell::Path],
             vec![Cell::Path, Cell::Path, Cell::Path],
@@ -73,7 +72,7 @@ mod tests {
         let end = (2, 2);
 
         let maze = Maze { cells, start, end };
-        let solver = AstarSolver;
+        let solver = DijkstraSolver;
 
         let path = solver.solve(&maze);
         assert!(path.is_some());
@@ -93,7 +92,7 @@ mod tests {
     }
 
     #[test]
-    fn test_astar_solver_no_path() {
+    fn test_dijkstra_solver_no_path() {
         let cells = vec![
             vec![Cell::Path, Cell::Wall, Cell::Path],
             vec![Cell::Wall, Cell::Wall, Cell::Path],
@@ -103,7 +102,7 @@ mod tests {
         let end = (2, 2);
 
         let maze = Maze { cells, start, end };
-        let solver = AstarSolver;
+        let solver = DijkstraSolver;
 
         let path = solver.solve(&maze);
         assert!(path.is_none(), "Expected no path due to walls");
