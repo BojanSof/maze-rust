@@ -5,6 +5,8 @@ use std::io::{self, BufRead};
 use std::path::Path;
 
 use crate::cell::Cell;
+use rand::seq::SliceRandom;
+use rand::Rng;
 
 pub struct Maze {
     pub cells: Vec<Vec<Cell>>,
@@ -115,6 +117,34 @@ impl Maze {
         }
 
         graph
+    }
+
+    pub fn remove_walls(&mut self, percentage: f32) {
+        if !(0.0..=100.0).contains(&percentage) {
+            eprintln!("Percentage must be between 0.0 and 100.0");
+            return;
+        }
+
+        let rows = self.cells.len();
+        let cols = self.cells[0].len();
+        let mut walls = Vec::new();
+
+        for r in 1..rows - 1 {
+            for c in 1..cols - 1 {
+                if self.cells[r][c] == Cell::Wall {
+                    walls.push((r, c));
+                }
+            }
+        }
+
+        let num_walls_to_remove = ((walls.len() as f32) * percentage / 100.0) as usize;
+        let mut rng = rand::thread_rng();
+        walls.shuffle(&mut rng);
+
+        for i in 0..num_walls_to_remove {
+            let (r, c) = walls[i];
+            self.cells[r][c] = Cell::Path;
+        }
     }
 }
 

@@ -12,6 +12,7 @@ impl MazeGenerator for RecursiveBacktrackerMazeGenerator {
         width: usize,
         start: Option<(usize, usize)>,
         end: Option<(usize, usize)>,
+        imperfect_percentage: f32,
     ) -> Maze {
         let mut cells = vec![vec![Cell::Wall; width]; height];
         let mut rng = rand::thread_rng();
@@ -56,11 +57,17 @@ impl MazeGenerator for RecursiveBacktrackerMazeGenerator {
         cells[start_node.0][start_node.1] = Cell::Path;
         cells[end_node.0][end_node.1] = Cell::Path;
 
-        Maze {
+        let mut maze = Maze {
             cells,
             start: start_node,
             end: end_node,
+        };
+
+        if imperfect_percentage > 0.0 {
+            maze.remove_walls(imperfect_percentage);
         }
+
+        maze
     }
 }
 

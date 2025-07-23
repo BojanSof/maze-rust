@@ -7,5 +7,6 @@ pub trait MazeGenerator {
         width: usize,
         start: Option<(usize, usize)>,
         end: Option<(usize, usize)>,
+        imperfect_percentage: f32,
     ) -> Maze;
 }

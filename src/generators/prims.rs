@@ -13,6 +13,7 @@ impl MazeGenerator for PrimMazeGenerator {
         width: usize,
         start: Option<(usize, usize)>,
         end: Option<(usize, usize)>,
+        imperfect_percentage: f32,
     ) -> Maze {
         let mut rng = rand::thread_rng();
         let mut cells = vec![vec![Cell::Wall; width]; height];
@@ -64,7 +65,13 @@ impl MazeGenerator for PrimMazeGenerator {
         cells[start.0][start.1] = Cell::Path;
         cells[end.0][end.1] = Cell::Path;
 
-        Maze { cells, start, end }
+        let mut maze = Maze { cells, start, end };
+
+        if imperfect_percentage > 0.0 {
+            maze.remove_walls(imperfect_percentage);
+        }
+
+        maze
     }
 }
 

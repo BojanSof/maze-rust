@@ -33,7 +33,8 @@ fn main() {
     for (generator_name, generator) in generators {
         println!("\n--- Generating maze with {} ---", generator_name);
         let gen_start = Instant::now();
-        let maze = generator.generate(height, width, Some(start), Some(end));
+        let imperfect_percentage = 20.0; // Percentage of walls to remove for imperfect mazes
+        let maze = generator.generate(height, width, Some(start), Some(end), imperfect_percentage);
         let gen_duration = gen_start.elapsed();
         println!("Maze generation took: {:.2?}", gen_duration);
 
