@@ -1,6 +1,7 @@
 use crate::cell::Cell;
 use crate::generators::generator::MazeGenerator;
 use crate::maze::Maze;
+use crate::progress::ProgressTracker;
 use rand::seq::IndexedRandom;
 
 pub struct RecursiveBacktrackerMazeGenerator;
@@ -13,6 +14,7 @@ impl MazeGenerator for RecursiveBacktrackerMazeGenerator {
         start: Option<(usize, usize)>,
         end: Option<(usize, usize)>,
         imperfect_percentage: f32,
+        mut tracker: Option<&mut ProgressTracker>,
     ) -> Maze {
         let mut cells = vec![vec![Cell::Wall; width]; height];
         let mut rng = rand::thread_rng();
@@ -20,6 +22,9 @@ impl MazeGenerator for RecursiveBacktrackerMazeGenerator {
 
         let start_node = start.unwrap_or((1, 1));
         cells[start_node.0][start_node.1] = Cell::Path;
+        if let Some(ref mut t) = tracker {
+            t.record(start_node.0, start_node.1, Cell::Path);
+        }
         stack.push(start_node);
 
         while let Some(&(y, x)) = stack.last() {
@@ -47,6 +52,10 @@ impl MazeGenerator for RecursiveBacktrackerMazeGenerator {
                 // Carve path to neighbor
                 cells[next_y][next_x] = Cell::Path;
                 cells[(y + next_y) / 2][(x + next_x) / 2] = Cell::Path;
+                if let Some(ref mut t) = tracker {
+                    t.record(next_y, next_x, Cell::Path);
+                    t.record((y + next_y) / 2, (x + next_x) / 2, Cell::Path);
+                }
                 stack.push(next_cell);
             } else {
                 stack.pop();
@@ -80,7 +89,7 @@ mod tests {
     #[test]
     fn test_generate_recursive_backtracker_maze() {
         let generator = RecursiveBacktrackerMazeGenerator;
-        let maze = generator.generate(11, 11, None, None);
+        let maze = generator.generate(11, 11, None, None, 0.0, None);
         assert_eq!(maze.start, (1, 1));
         assert_eq!(maze.end, (9, 9));
         assert_eq!(maze.cells[maze.start.0][maze.start.1], Cell::Path);

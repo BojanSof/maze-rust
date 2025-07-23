@@ -1,13 +1,17 @@
-use std::collections::HashMap;
-
 use crate::maze::Maze;
 use crate::priority_queue::PriorityQueue;
+use crate::progress::ProgressTracker;
 use crate::solvers::solver::Solver;
+use std::collections::HashMap;
 
 pub struct AstarSolver;
 
 impl Solver for AstarSolver {
-    fn solve(&self, maze: &Maze) -> Option<Vec<(usize, usize)>> {
+    fn solve(
+        &self,
+        maze: &Maze,
+        mut tracker: Option<&mut ProgressTracker>,
+    ) -> Option<Vec<(usize, usize)>> {
         let graph = maze.to_graph();
 
         let mut queue = PriorityQueue::new();
@@ -17,6 +21,10 @@ impl Solver for AstarSolver {
         queue.push((heuristic(maze.start, maze.end), maze.start));
 
         while let Some((_, current_node)) = queue.pop() {
+            if let Some(ref mut t) = tracker {
+                t.record(current_node.0, current_node.1, crate::cell::Cell::Path);
+            }
+
             if current_node == maze.end {
                 let mut path = vec![current_node];
                 let mut current = current_node;
@@ -75,7 +83,7 @@ mod tests {
         let maze = Maze { cells, start, end };
         let solver = AstarSolver;
 
-        let path = solver.solve(&maze);
+        let path = solver.solve(&maze, None);
         assert!(path.is_some());
 
         let path = path.unwrap();
@@ -105,7 +113,7 @@ mod tests {
         let maze = Maze { cells, start, end };
         let solver = AstarSolver;
 
-        let path = solver.solve(&maze);
+        let path = solver.solve(&maze, None);
         assert!(path.is_none(), "Expected no path due to walls");
     }
 }

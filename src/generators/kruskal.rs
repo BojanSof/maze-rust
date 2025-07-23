@@ -1,6 +1,7 @@
 use crate::cell::Cell;
 use crate::generators::generator::MazeGenerator;
 use crate::maze::Maze;
+use crate::progress::ProgressTracker;
 use rand::seq::SliceRandom;
 
 pub struct KruskalMazeGenerator;
@@ -41,6 +42,7 @@ impl MazeGenerator for KruskalMazeGenerator {
         start: Option<(usize, usize)>,
         end: Option<(usize, usize)>,
         imperfect_percentage: f32,
+        mut tracker: Option<&mut ProgressTracker>,
     ) -> Maze {
         let mut cells = vec![vec![Cell::Wall; width]; height];
         let mut rng = rand::thread_rng();
@@ -58,6 +60,14 @@ impl MazeGenerator for KruskalMazeGenerator {
             }
         }
 
+        if let Some(ref mut t) = tracker {
+            for r in (1..height).step_by(2) {
+                for c in (1..width).step_by(2) {
+                    t.record(r, c, Cell::Path);
+                }
+            }
+        }
+
         let mut dset = DisjointSet::new(height * width);
         walls.shuffle(&mut rng);
 
@@ -67,6 +77,9 @@ impl MazeGenerator for KruskalMazeGenerator {
             if dset.find(idx1) != dset.find(idx2) {
                 dset.union(idx1, idx2);
                 cells[(r1 + r2) / 2][(c1 + c2) / 2] = Cell::Path;
+                if let Some(ref mut t) = tracker {
+                    t.record((r1 + r2) / 2, (c1 + c2) / 2, Cell::Path);
+                }
             }
         }
 
@@ -98,7 +111,7 @@ mod tests {
     #[test]
     fn test_generate_kruskal_maze() {
         let generator = KruskalMazeGenerator;
-        let maze = generator.generate(11, 11, None, None);
+        let maze = generator.generate(11, 11, None, None, None);
         assert_eq!(maze.start, (1, 1));
         assert_eq!(maze.end, (9, 9));
         assert_eq!(maze.cells[maze.start.0][maze.start.1], Cell::Path);

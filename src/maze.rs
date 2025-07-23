@@ -8,6 +8,7 @@ use crate::cell::Cell;
 use rand::seq::SliceRandom;
 use rand::Rng;
 
+#[derive(Clone)]
 pub struct Maze {
     pub cells: Vec<Vec<Cell>>,
     pub start: (usize, usize),

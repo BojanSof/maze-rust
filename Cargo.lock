@@ -453,6 +453,7 @@ dependencies = [
 name = "maze_rust"
 version = "0.1.0"
 dependencies = [
+ "gif",
  "image",
  "rand 0.9.2",
 ]

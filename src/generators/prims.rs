@@ -1,6 +1,7 @@
 use crate::cell::Cell;
 use crate::generators::generator::MazeGenerator;
 use crate::maze::Maze;
+use crate::progress::ProgressTracker;
 use rand::Rng;
 
 /// Generates a maze using Prim's algorithm.
@@ -14,6 +15,7 @@ impl MazeGenerator for PrimMazeGenerator {
         start: Option<(usize, usize)>,
         end: Option<(usize, usize)>,
         imperfect_percentage: f32,
+        mut tracker: Option<&mut ProgressTracker>,
     ) -> Maze {
         let mut rng = rand::thread_rng();
         let mut cells = vec![vec![Cell::Wall; width]; height];
@@ -27,6 +29,10 @@ impl MazeGenerator for PrimMazeGenerator {
             rng.gen_range(1..width / 2) * 2 + 1,
         );
         cells[start_pos.0][start_pos.1] = Cell::Path;
+        if let Some(ref mut t) = tracker {
+            t.record(start_pos.0, start_pos.1, Cell::Path);
+        }
+
         for (dy, dx) in [(-2i32, 0), (2, 0), (0, -2), (0, 2)] {
             let ny = start_pos.0 as i32 + dy;
             let nx = start_pos.1 as i32 + dx;
@@ -45,6 +51,10 @@ impl MazeGenerator for PrimMazeGenerator {
                 if cells[between_y][between_x] == Cell::Wall {
                     cells[wy][wx] = Cell::Path;
                     cells[between_y][between_x] = Cell::Path;
+                    if let Some(ref mut t) = tracker {
+                        t.record(wy, wx, Cell::Path);
+                        t.record(between_y, between_x, Cell::Path);
+                    }
                     // Add neighboring walls
                     for (dy, dx) in [(-2i32, 0), (2, 0), (0, -2), (0, 2)] {
                         let ny = wy as i32 + dy;
@@ -85,7 +95,7 @@ mod tests {
     fn test_generate_prim_maze() {
         // Generate a small maze
         let generator = PrimMazeGenerator;
-        let maze = generator.generate(9, 9, None, None);
+        let maze = generator.generate(9, 9, None, None, None);
         // Ensure start and end are correct
         assert_eq!(maze.start, (1, 1));
         assert_eq!(maze.end, (7, 7));
@@ -121,7 +131,7 @@ mod tests {
         let start = (3, 3);
         let end = (5, 5);
         let generator = PrimMazeGenerator;
-        let maze = generator.generate(9, 9, Some(start), Some(end));
+        let maze = generator.generate(9, 9, Some(start), Some(end), None);
         // Ensure start and end are correct
         assert_eq!(maze.start, start);
         assert_eq!(maze.end, end);

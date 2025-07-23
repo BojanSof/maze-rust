@@ -1,6 +1,7 @@
 use crate::cell::Cell;
 use crate::generators::generator::MazeGenerator;
 use crate::maze::Maze;
+use crate::progress::ProgressTracker;
 use rand::Rng;
 
 pub struct AldousBroderMazeGenerator;
@@ -13,6 +14,7 @@ impl MazeGenerator for AldousBroderMazeGenerator {
         start: Option<(usize, usize)>,
         end: Option<(usize, usize)>,
         imperfect_percentage: f32,
+        mut tracker: Option<&mut ProgressTracker>,
     ) -> Maze {
         let mut cells = vec![vec![Cell::Wall; width]; height];
         let mut rng = rand::thread_rng();
@@ -21,6 +23,9 @@ impl MazeGenerator for AldousBroderMazeGenerator {
         let mut current_y = rng.gen_range(0..height / 2) * 2 + 1;
         let mut current_x = rng.gen_range(0..width / 2) * 2 + 1;
         cells[current_y][current_x] = Cell::Path;
+        if let Some(ref mut t) = tracker {
+            t.record(current_y, current_x, Cell::Path);
+        }
 
         while unvisited > 0 {
             let mut neighbors = Vec::new();
@@ -42,6 +47,14 @@ impl MazeGenerator for AldousBroderMazeGenerator {
             if cells[next_y][next_x] == Cell::Wall {
                 cells[next_y][next_x] = Cell::Path;
                 cells[(current_y + next_y) / 2][(current_x + next_x) / 2] = Cell::Path;
+                if let Some(ref mut t) = tracker {
+                    t.record(next_y, next_x, Cell::Path);
+                    t.record(
+                        (current_y + next_y) / 2,
+                        (current_x + next_x) / 2,
+                        Cell::Path,
+                    );
+                }
                 unvisited -= 1;
             }
             current_y = next_y;
@@ -76,7 +89,7 @@ mod tests {
     #[test]
     fn test_generate_aldous_broder_maze() {
         let generator = AldousBroderMazeGenerator;
-        let maze = generator.generate(11, 11, None, None);
+        let maze = generator.generate(11, 11, None, None, None);
         assert_eq!(maze.start, (1, 1));
         assert_eq!(maze.end, (9, 9));
         assert_eq!(maze.cells[maze.start.0][maze.start.1], Cell::Path);

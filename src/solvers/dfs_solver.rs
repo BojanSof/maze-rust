@@ -1,14 +1,18 @@
-use std::collections::{HashMap, HashSet};
-
 use crate::cell::Cell;
 use crate::maze::Maze;
+use crate::progress::ProgressTracker;
 use crate::solvers::solver::Solver;
 use crate::stack::Stack;
+use std::collections::{HashMap, HashSet};
 
 pub struct DfsSolver;
 
 impl Solver for DfsSolver {
-    fn solve(&self, maze: &Maze) -> Option<Vec<(usize, usize)>> {
+    fn solve(
+        &self,
+        maze: &Maze,
+        mut tracker: Option<&mut ProgressTracker>,
+    ) -> Option<Vec<(usize, usize)>> {
         let mut stack = Stack::new();
         let mut visited: HashSet<(usize, usize)> = HashSet::new();
         let mut parent: HashMap<(usize, usize), (usize, usize)> = HashMap::new(); // To track the path
@@ -17,6 +21,10 @@ impl Solver for DfsSolver {
 
         while let Some((row, col)) = stack.pop() {
             visited.insert((row, col));
+            if let Some(ref mut t) = tracker {
+                t.record(row, col, crate::cell::Cell::Path);
+            }
+
             if (row, col) == maze.end {
                 let mut path = vec![(row, col)];
                 let mut current = (row, col);
@@ -88,7 +96,7 @@ mod tests {
         let maze = Maze { cells, start, end };
 
         let solver = DfsSolver;
-        let path = solver.solve(&maze);
+        let path = solver.solve(&maze, None);
 
         assert!(path.is_some(), "Solver should find a path");
         let path = path.unwrap();
@@ -156,7 +164,7 @@ mod tests {
         let maze = Maze { cells, start, end };
 
         let solver = DfsSolver;
-        let path = solver.solve(&maze);
+        let path = solver.solve(&maze, None);
 
         assert!(
             path.is_none(),

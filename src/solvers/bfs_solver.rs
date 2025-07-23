@@ -1,14 +1,18 @@
-use std::collections::{HashMap, HashSet};
-
 use crate::cell::Cell;
 use crate::maze::Maze;
+use crate::progress::ProgressTracker;
 use crate::queue::Queue;
 use crate::solvers::solver::Solver;
+use std::collections::{HashMap, HashSet};
 
 pub struct BfsSolver;
 
 impl Solver for BfsSolver {
-    fn solve(&self, maze: &Maze) -> Option<Vec<(usize, usize)>> {
+    fn solve(
+        &self,
+        maze: &Maze,
+        mut tracker: Option<&mut ProgressTracker>,
+    ) -> Option<Vec<(usize, usize)>> {
         let mut visited = HashSet::new();
         let mut queue = Queue::new();
         let mut parent: HashMap<(usize, usize), (usize, usize)> = HashMap::new();
@@ -17,6 +21,10 @@ impl Solver for BfsSolver {
 
         while let Some((row, col)) = queue.dequeue() {
             visited.insert((row, col));
+            if let Some(ref mut t) = tracker {
+                t.record(row, col, crate::cell::Cell::Path);
+            }
+
             if (row, col) == maze.end {
                 let mut path = vec![(row, col)];
                 let mut current = (row, col);
@@ -64,7 +72,7 @@ mod tests {
         let maze = Maze { cells, start, end };
 
         let solver = BfsSolver;
-        let path = solver.solve(&maze);
+        let path = solver.solve(&maze, None);
 
         assert!(path.is_some());
         let path = path.unwrap();
@@ -97,7 +105,7 @@ mod tests {
         let maze = Maze { cells, start, end };
 
         let solver = BfsSolver;
-        let path = solver.solve(&maze);
+        let path = solver.solve(&maze, None);
         assert!(path.is_none()); // No valid path due to walls
     }
 }
