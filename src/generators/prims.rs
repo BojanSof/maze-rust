@@ -95,7 +95,7 @@ mod tests {
     fn test_generate_prim_maze() {
         // Generate a small maze
         let generator = PrimMazeGenerator;
-        let maze = generator.generate(9, 9, None, None, None);
+        let maze = generator.generate(9, 9, None, None, 0.0, None);
         // Ensure start and end are correct
         assert_eq!(maze.start, (1, 1));
         assert_eq!(maze.end, (7, 7));
@@ -131,7 +131,7 @@ mod tests {
         let start = (3, 3);
         let end = (5, 5);
         let generator = PrimMazeGenerator;
-        let maze = generator.generate(9, 9, Some(start), Some(end), None);
+        let maze = generator.generate(9, 9, Some(start), Some(end), 0.0, None);
         // Ensure start and end are correct
         assert_eq!(maze.start, start);
         assert_eq!(maze.end, end);

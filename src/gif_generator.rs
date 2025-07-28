@@ -38,46 +38,58 @@ const PALETTE: &[u8] = &[
     CURRENT_COLOR.0[2], // 6: current cell
 ];
 
+/// Animate maze generation history and append final maze (including wall removals)
 pub fn save_history_to_gif(
-    height: usize,
-    width: usize,
-    start: (usize, usize),
-    end: (usize, usize),
+    maze: &Maze,
     history: &[(usize, usize, Cell)],
-    path: &str,
+    file_path: &str,
     scale: u32,
     delay: u16,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut maze = Maze {
-        cells: vec![vec![Cell::Wall; width]; height],
-        start,
-        end,
+    // Build an empty maze for animation, preserving start/end
+    let mut anim = Maze {
+        cells: vec![vec![Cell::Wall; maze.cells[0].len()]; maze.cells.len()],
+        start: maze.start,
+        end: maze.end,
     };
 
-    let mut image_file = File::create(path)?;
+    let mut image_file = File::create(file_path)?;
+    let w = maze.cells[0].len() as u32;
+    let h = maze.cells.len() as u32;
     let mut encoder = Encoder::new(
         &mut image_file,
-        (width as u32 * scale) as u16,
-        (height as u32 * scale) as u16,
+        (w * scale) as u16,
+        (h * scale) as u16,
         PALETTE,
     )?;
     encoder.set_repeat(Repeat::Finite(0))?;
 
-    let mut frame_buffer = maze_to_indexed_buffer(&maze, scale, &HashSet::new());
+    let mut frame_buffer = maze_to_indexed_buffer(&anim, scale, &HashSet::new());
 
     // Emit one frame per generation history step
     for (y, x, cell) in history {
-        maze.cells[*y][*x] = *cell;
-        update_frame_buffer(&mut frame_buffer, &maze, *y, *x, scale, &HashSet::new());
+        anim.cells[*y][*x] = *cell;
+        update_frame_buffer(&mut frame_buffer, &anim, *y, *x, scale, &HashSet::new());
         let mut frame = Frame::from_indexed_pixels(
-            (width as u32 * scale) as u16,
-            (height as u32 * scale) as u16,
+            (w * scale) as u16,
+            (h * scale) as u16,
             &frame_buffer[..],
             None,
         );
         frame.delay = delay;
         encoder.write_frame(&frame)?;
     }
+
+    // Final frame: render the passed-in maze (with wall removals)
+    frame_buffer = maze_to_indexed_buffer(maze, scale, &HashSet::new());
+    let mut final_frame = Frame::from_indexed_pixels(
+        (w * scale) as u16,
+        (h * scale) as u16,
+        &frame_buffer[..],
+        None,
+    );
+    final_frame.delay = delay;
+    encoder.write_frame(&final_frame)?;
 
     Ok(())
 }

@@ -7,3 +7,4 @@ edition = "2021"
 image = "0.25"
 gif = "0.13.3"
 rand = "0.9.2"
+clap = { version = "4.2", features = ["derive"] }

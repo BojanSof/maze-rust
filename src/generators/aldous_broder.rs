@@ -89,7 +89,7 @@ mod tests {
     #[test]
     fn test_generate_aldous_broder_maze() {
         let generator = AldousBroderMazeGenerator;
-        let maze = generator.generate(11, 11, None, None, None);
+        let maze = generator.generate(11, 11, None, None, 0.0, None);
         assert_eq!(maze.start, (1, 1));
         assert_eq!(maze.end, (9, 9));
         assert_eq!(maze.cells[maze.start.0][maze.start.1], Cell::Path);
