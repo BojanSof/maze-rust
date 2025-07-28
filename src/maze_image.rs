@@ -1,13 +1,8 @@
 use crate::cell::Cell;
+use crate::colors::{END_COLOR, PATH_COLOR, SOLUTION_PATH_COLOR, START_COLOR, WALL_COLOR};
 use crate::maze::Maze;
 use image::{ImageBuffer, Rgb, RgbImage};
 use std::collections::HashSet;
-
-pub const WALL_COLOR: Rgb<u8> = Rgb([255, 255, 255]);
-pub const PATH_COLOR: Rgb<u8> = Rgb([0, 0, 0]);
-pub const START_COLOR: Rgb<u8> = Rgb([0, 255, 0]);
-pub const END_COLOR: Rgb<u8> = Rgb([255, 0, 0]);
-pub const SOLUTION_PATH_COLOR: Rgb<u8> = Rgb([0, 0, 255]);
 
 pub fn save_maze_to_image(maze: &Maze, path: &str) -> Result<(), image::ImageError> {
     save_maze_to_image_scaled(maze, path, 1)

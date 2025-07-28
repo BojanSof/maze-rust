@@ -1,4 +1,5 @@
 mod cell;
+mod colors;
 mod generators;
 mod gif_generator;
 mod maze;
@@ -26,7 +27,7 @@ fn main() {
     let scale = 10;
     let generate_gifs = true;
     let gif_generator_delay = 1; // Delay in milliseconds for generator GIFs
-    let gif_solver_delay = 10; // Delay in milliseconds for solver GIFs
+    let gif_solver_delay = 1; // Delay in milliseconds for solver GIFs
 
     let generators: Vec<(&str, &dyn MazeGenerator)> = vec![
         ("prims", &PrimMazeGenerator),
@@ -104,8 +105,9 @@ fn main() {
                         );
                         println!("Saving solving GIF to {}...", gif_path);
                         let gif_start = Instant::now();
-                        if let Err(e) = gif_generator::save_maze_with_path_to_gif(
+                        if let Err(e) = gif_generator::save_solver_history_to_gif(
                             &maze,
+                            &tracker.history,
                             &path,
                             &gif_path,
                             scale,
