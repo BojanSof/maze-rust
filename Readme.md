@@ -33,14 +33,34 @@ cargo run --release -- \
   --generate-gifs \
   --output-dir mazes
 ```
+
+To see all available CLI options and their descriptions, run:
+```bash
+cargo run -- --help
+```
+
 ### Maze generation animations
+#### Recursive Backtracker
 ![Recursive backtracker](images/maze_recursive_backtracker.gif)
+
+#### Prim's algorithm
 ![Prim's algorithm](images/maze_prims.gif)
+
+#### Kruskal's algorithm
 ![Kruskal's algorithm](images/maze_kruskal.gif)
+
+#### Aldous-Broder algorithm
 ![Aldous-Broder algorithm](images/maze_aldous_broder.gif)
 
 ### Solver animations
+#### A* search
 ![A* search](images/maze_astar.gif)
+
+#### Breadth-first search (BFS)
 ![Breadth-first search (BFS)](images/maze_bfs.gif)
+
+#### Depth-first search (DFS)
 ![Depth-first search (DFS)](images/maze_dfs.gif)
+
+#### Dijkstra's algorithm
 ![Dijkstra](images/maze_dijkstra.gif)
